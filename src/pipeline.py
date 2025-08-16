@@ -6,13 +6,13 @@ import os
 import json
 import pandas as pd
 
-from src.pdf_parsing import PDFParser
-from src.parsed_reports_merging import PageTextPreparation
-from src.text_splitter import TextSplitter
-from src.ingestion import VectorDBIngestor
-from src.ingestion import BM25Ingestor
-from src.questions_processing import QuestionsProcessor
-from src.tables_serialization import TableSerializer
+from src.pdf_processing.pdf_parsing import PDFParser
+from src.pdf_processing.parsed_reports_merging import PageTextPreparation
+from src.text_processing.text_splitter import TextSplitter
+from src.vector_index_preparation.ingestion import VectorDBIngestor
+from src.vector_index_preparation.ingestion import BM25Ingestor
+from src.production.questions_processing import QuestionsProcessor
+from src.pdf_processing.tables_serialization import TableSerializer
 
 @dataclass
 class PipelineConfig:
