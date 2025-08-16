@@ -20,7 +20,6 @@ RUN pip install --upgrade pip && pip install -r requirements.txt
 COPY setup.py ./
 COPY src ./src
 COPY main.py ./
-COPY README.md ./
 COPY docs ./docs
 
 # Install editable package
