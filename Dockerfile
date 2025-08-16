@@ -21,7 +21,7 @@ COPY setup.py ./
 COPY src ./src
 COPY main.py ./
 COPY README.md ./
-COPY PERSONA_ADAPTATION_PLAN.md ./
+COPY docs ./docs
 
 # Install editable package
 RUN pip install -e .
