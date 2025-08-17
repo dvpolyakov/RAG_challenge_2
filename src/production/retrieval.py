@@ -9,7 +9,7 @@ from openai import OpenAI
 from dotenv import load_dotenv
 import os
 import numpy as np
-from src.reranking import LLMReranker
+from src.production.reranking import LLMReranker
 
 _log = logging.getLogger(__name__)
 

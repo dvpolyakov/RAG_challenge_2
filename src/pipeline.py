@@ -6,13 +6,13 @@ import os
 import json
 import pandas as pd
 
-from src.pdf_parsing import PDFParser
-from src.parsed_reports_merging import PageTextPreparation
-from src.text_splitter import TextSplitter
-from src.ingestion import VectorDBIngestor
-from src.ingestion import BM25Ingestor
-from src.questions_processing import QuestionsProcessor
-from src.tables_serialization import TableSerializer
+# from src.pdf_processing.pdf_parsing import PDFParser
+# from src.pdf_processing.parsed_reports_merging import PageTextPreparation
+from src.text_processing.text_splitter import TextSplitter
+from src.vector_index_preparation.ingestion import VectorDBIngestor
+from src.vector_index_preparation.ingestion import BM25Ingestor
+from src.production.questions_processing import QuestionsProcessor
+# from src.pdf_processing.tables_serialization import TableSerializer
 
 @dataclass
 class PipelineConfig:
@@ -22,7 +22,7 @@ class PipelineConfig:
 
         self.subset_path = root_path / subset_name
         self.questions_file_path = root_path / questions_file_name
-        self.pdf_reports_dir = root_path / pdf_reports_dir_name
+        # self.pdf_reports_dir = root_path / pdf_reports_dir_name
         
         self.answers_file_path = root_path / f"answers{config_suffix}.json"       
         self.debug_data_path = root_path / "debug_data"
@@ -32,15 +32,15 @@ class PipelineConfig:
         self.documents_dir = self.databases_path / "chunked_reports"
         self.bm25_db_path = self.databases_path / "bm25_dbs"
 
-        self.parsed_reports_dirname = "01_parsed_reports"
-        self.parsed_reports_debug_dirname = "01_parsed_reports_debug"
-        self.merged_reports_dirname = f"02_merged_reports{suffix}"
-        self.reports_markdown_dirname = f"03_reports_markdown{suffix}"
+        # self.parsed_reports_dirname = "01_parsed_reports"
+        # self.parsed_reports_debug_dirname = "01_parsed_reports_debug"
+        # self.merged_reports_dirname = f"02_merged_reports{suffix}"
+        # self.reports_markdown_dirname = f"03_reports_markdown{suffix}"
 
-        self.parsed_reports_path = self.debug_data_path / self.parsed_reports_dirname
-        self.parsed_reports_debug_path = self.debug_data_path / self.parsed_reports_debug_dirname
-        self.merged_reports_path = self.debug_data_path / self.merged_reports_dirname
-        self.reports_markdown_path = self.debug_data_path / self.reports_markdown_dirname
+        # self.parsed_reports_path = self.debug_data_path / self.parsed_reports_dirname
+        # self.parsed_reports_debug_path = self.debug_data_path / self.parsed_reports_debug_dirname
+        # self.merged_reports_path = self.debug_data_path / self.merged_reports_dirname
+        # self.reports_markdown_path = self.debug_data_path / self.reports_markdown_dirname
 
 @dataclass
 class RunConfig:
@@ -100,73 +100,73 @@ class Pipeline:
 
 # Docling automatically downloads some models from huggingface when first used
 # I wanted to download them prior to running the pipeline and created this crutch
-    @staticmethod
-    def download_docling_models(): 
-        logging.basicConfig(level=logging.DEBUG)
-        parser = PDFParser(output_dir=here())
-        parser.parse_and_export(input_doc_paths=[here() / "src/dummy_report.pdf"])
+    # @staticmethod
+    # def download_docling_models(): 
+    #     logging.basicConfig(level=logging.DEBUG)
+    #     parser = PDFParser(output_dir=here())
+    #     parser.parse_and_export(input_doc_paths=[here() / "src/dummy_report.pdf"])
 
-    def parse_pdf_reports_sequential(self):
-        logging.basicConfig(level=logging.DEBUG)
-        
-        pdf_parser = PDFParser(
-            output_dir=self.paths.parsed_reports_path,
-            csv_metadata_path=self.paths.subset_path
-        )
-        pdf_parser.debug_data_path = self.paths.parsed_reports_debug_path
-            
-        pdf_parser.parse_and_export(doc_dir=self.paths.pdf_reports_dir)
-        print(f"PDF reports parsed and saved to {self.paths.parsed_reports_path}")
+    # def parse_pdf_reports_sequential(self):
+    #     logging.basicConfig(level=logging.DEBUG)
+    #     
+    #     pdf_parser = PDFParser(
+    #         output_dir=self.paths.parsed_reports_path,
+    #         csv_metadata_path=self.paths.subset_path
+    #     )
+    #     pdf_parser.debug_data_path = self.paths.parsed_reports_debug_path
+    #         
+    #     pdf_parser.parse_and_export(doc_dir=self.paths.pdf_reports_dir)
+    #     print(f"PDF reports parsed and saved to {self.paths.parsed_reports_path}")
 
-    def parse_pdf_reports_parallel(self, chunk_size: int = 2, max_workers: int = 10):
-        """Parse PDF reports in parallel using multiple processes.
-        
-        Args:
-            chunk_size: Number of PDFs to process in each worker
-            num_workers: Number of parallel worker processes to use
-        """
-        logging.basicConfig(level=logging.DEBUG)
-        
-        pdf_parser = PDFParser(
-            output_dir=self.paths.parsed_reports_path,
-            csv_metadata_path=self.paths.subset_path
-        )
-        pdf_parser.debug_data_path = self.paths.parsed_reports_debug_path
+    # def parse_pdf_reports_parallel(self, chunk_size: int = 2, max_workers: int = 10):
+    #     """Parse PDF reports in parallel using multiple processes.
+    #     
+    #     Args:
+    #         chunk_size: Number of PDFs to process in each worker
+    #         num_workers: Number of parallel worker processes to use
+    #     """
+    #     logging.basicConfig(level=logging.DEBUG)
+    #     
+    #     pdf_parser = PDFParser(
+    #         output_dir=self.paths.parsed_reports_path,
+    #         csv_metadata_path=self.paths.subset_path
+    #     )
+    #     pdf_parser.debug_data_path = self.paths.parsed_reports_debug_path
+    # 
+    #     input_doc_paths = list(self.paths.pdf_reports_dir.glob("*.pdf"))
+    #     
+    #     pdf_parser.parse_and_export_parallel(
+    #         input_doc_paths=input_doc_paths,
+    #         optimal_workers=max_workers,
+    #         chunk_size=chunk_size
+    #     )
+    #     print(f"PDF reports parsed and saved to {self.paths.parsed_reports_path}")
 
-        input_doc_paths = list(self.paths.pdf_reports_dir.glob("*.pdf"))
-        
-        pdf_parser.parse_and_export_parallel(
-            input_doc_paths=input_doc_paths,
-            optimal_workers=max_workers,
-            chunk_size=chunk_size
-        )
-        print(f"PDF reports parsed and saved to {self.paths.parsed_reports_path}")
+    # def serialize_tables(self, max_workers: int = 10):
+    #     """Process tables in files using parallel threading"""
+    #     serializer = TableSerializer()
+    #     serializer.process_directory_parallel(
+    #         self.paths.parsed_reports_path,
+    #         max_workers=max_workers
+    #     )
 
-    def serialize_tables(self, max_workers: int = 10):
-        """Process tables in files using parallel threading"""
-        serializer = TableSerializer()
-        serializer.process_directory_parallel(
-            self.paths.parsed_reports_path,
-            max_workers=max_workers
-        )
+    # def merge_reports(self):
+    #     """Merge complex JSON reports into a simpler structure with a list of pages, where all text blocks are combined into a single string."""
+    #     ptp = PageTextPreparation(use_serialized_tables=self.run_config.use_serialized_tables)
+    #     _ = ptp.process_reports(
+    #         reports_dir=self.paths.parsed_reports_path,
+    #         output_dir=self.paths.merged_reports_path
+    #     )
+    #     print(f"Reports saved to {self.paths.merged_reports_path}")
 
-    def merge_reports(self):
-        """Merge complex JSON reports into a simpler structure with a list of pages, where all text blocks are combined into a single string."""
-        ptp = PageTextPreparation(use_serialized_tables=self.run_config.use_serialized_tables)
-        _ = ptp.process_reports(
-            reports_dir=self.paths.parsed_reports_path,
-            output_dir=self.paths.merged_reports_path
-        )
-        print(f"Reports saved to {self.paths.merged_reports_path}")
-
-    def export_reports_to_markdown(self):
-        """Export processed reports to markdown format for review."""
-        ptp = PageTextPreparation(use_serialized_tables=self.run_config.use_serialized_tables)
-        ptp.export_to_markdown(
-            reports_dir=self.paths.parsed_reports_path,
-            output_dir=self.paths.reports_markdown_path
-        )
-        print(f"Reports saved to {self.paths.reports_markdown_path}")
+    # def export_reports_to_markdown(self):
+    #     """Export processed reports to markdown format for review."""
+    #     ptp = PageTextPreparation(use_serialized_tables=self.run_config.use_serialized_tables)
+    #     ptp.export_to_markdown(
+    #         reports_dir=self.paths.parsed_reports_path,
+    #         output_dir=self.paths.reports_markdown_path
+    #     )
+    #     print(f"Reports saved to {self.paths.reports_markdown_path}")
 
     def chunk_reports(self, include_serialized_tables: bool = False):
         """Split processed reports into smaller chunks for better processing."""
@@ -201,34 +201,34 @@ class Pipeline:
         bm25_ingestor.process_reports(input_dir, output_file)
         print(f"BM25 database created at {output_file}")
     
-    def parse_pdf_reports(self, parallel: bool = True, chunk_size: int = 2, max_workers: int = 10):
-        if parallel:
-            self.parse_pdf_reports_parallel(chunk_size=chunk_size, max_workers=max_workers)
-        else:
-            self.parse_pdf_reports_sequential()
+    # def parse_pdf_reports(self, parallel: bool = True, chunk_size: int = 2, max_workers: int = 10):
+    #     if parallel:
+    #         self.parse_pdf_reports_parallel(chunk_size=chunk_size, max_workers=max_workers)
+    #     else:
+    #         self.parse_pdf_reports_sequential()
     
-    def process_parsed_reports(self):
-        """Process already parsed PDF reports through the pipeline:
-        1. Merge to simpler JSON structure
-        2. Export to markdown
-        3. Chunk the reports
-        4. Create vector databases
-        """
-        print("Starting reports processing pipeline...")
-        
-        print("Step 1: Merging reports...")
-        self.merge_reports()
-        
-        print("Step 2: Exporting reports to markdown...")
-        self.export_reports_to_markdown()
-        
-        print("Step 3: Chunking reports...")
-        self.chunk_reports()
-        
-        print("Step 4: Creating vector databases...")
-        self.create_vector_dbs()
-        
-        print("Reports processing pipeline completed successfully!")
+    # def process_parsed_reports(self):
+    #     """Process already parsed PDF reports through the pipeline:
+    #     1. Merge to simpler JSON structure
+    #     2. Export to markdown
+    #     3. Chunk the reports
+    #     4. Create vector databases
+    #     """
+    #     print("Starting reports processing pipeline...")
+    #     
+    #     print("Step 1: Merging reports...")
+    #     self.merge_reports()
+    #     
+    #     print("Step 2: Exporting reports to markdown...")
+    #     self.export_reports_to_markdown()
+    #     
+    #     print("Step 3: Chunking reports...")
+    #     self.chunk_reports()
+    #     
+    #     print("Step 4: Creating vector databases...")
+    #     self.create_vector_dbs()
+    #     
+    #     print("Reports processing pipeline completed successfully!")
         
     def _get_next_available_filename(self, base_path: Path) -> Path:
         """
@@ -457,9 +457,9 @@ if __name__ == "__main__":
     # pipeline.parse_pdf_reports_sequential() 
     
     
-    # This method should be called only if you want run configs with serialized tables
-    # It modifies the jsons in the debug/data_01_parsed_reports, adding a new field "serialized_table" to each table
-    # pipeline.serialize_tables(max_workers=5) 
+    # # This method should be called only if you want run configs with serialized tables
+    # # It modifies the jsons in the debug/data_01_parsed_reports, adding a new field "serialized_table" to each table
+    # # pipeline.serialize_tables(max_workers=5) 
     
     
     # This method converts jsons from the debug/data_01_parsed_reports into much simpler jsons, that is a list of pages in markdown

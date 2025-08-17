@@ -2,7 +2,7 @@ import os
 from dotenv import load_dotenv
 from openai import OpenAI
 import requests
-import src.prompts as prompts
+import src.llm_api_utils.prompts as prompts
 from concurrent.futures import ThreadPoolExecutor
 
 
